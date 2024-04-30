@@ -3,19 +3,42 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\EventResource;
+use App\Http\Traits\CanLoadRelations;
 use App\Models\Event;
 use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
+
+    use CanLoadRelations;
+
+    private array $relations = ['user', 'attendees', 'attendees.user'];
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
+        $query = $this->loadRelations(Event::query());
+
         return EventResource::collection(
-            Event::with(['user', 'attendee'])->paginate()
+            $query->latest()->paginate()
         );
+    }
+
+    //Helper
+
+    protected function shouldIncludeRelation(string $relation) : bool
+    {
+          $include = \request()->query('include');
+
+          if(!$include)
+          {
+              return false;
+          }
+
+          $relations = array_map('trim',explode(',',$include));
+
+          return in_array($relation, $relations);
     }
 
     /**
