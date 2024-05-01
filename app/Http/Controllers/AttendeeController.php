@@ -26,6 +26,19 @@ class AttendeeController extends Controller
         );
     }
 
+    protected function shouldIncludeRelation(string $relation) : bool
+    {
+        $include = \request()->query('include');
+
+        if(!$include)
+        {
+            return false;
+        }
+
+        $relations = array_map('trim',explode(',',$include));
+
+        return in_array($relation, $relations);
+    }
     /**
      * Show the form for creating a new resource.
      */
