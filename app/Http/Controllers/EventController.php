@@ -6,8 +6,10 @@ use App\Http\Resources\EventResource;
 use App\Http\Traits\CanLoadRelations;
 use App\Models\Event;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class EventController extends Controller
+class EventController extends Controller implements HasMiddleware
 {
 
     use CanLoadRelations;
@@ -15,7 +17,16 @@ class EventController extends Controller
     private array $relations = ['user', 'attendees', 'attendees.user'];
     /**
      * Display a listing of the resource.
+     *
+     *
      */
+
+    public static function middleware(): array
+    {
+        return [
+            new Middleware(middleware: 'auth:sanctum', except: ['index', 'show']),
+        ];
+    }
     public function index()
     {
         $query = $this->loadRelations(Event::query());
@@ -61,7 +72,7 @@ class EventController extends Controller
                 'start_time' => 'required|date',
                 'end_time' => 'required|date|after:start_date'
             ]),
-            'user_id' => 1
+            'user_id' => auth()->user()->id
         ]);
 
         return new EventResource($event);

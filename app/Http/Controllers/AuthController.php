@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -18,6 +20,23 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
+        if(!$user){
+            throw ValidationException::withMessages([
+                'email' => ['Not right']
+            ]);
+        }
+
+        if(!Hash::check($request->password, $user->password)){
+            throw ValidationException::withMessages([
+                'email' => ['Password Wrong']
+            ]);
+        }
+
+        $token = $user->createToken('api_token')->plainTextToken;
+
+        return response()->json([
+            'token' => $token
+        ]);
 
     }
     public function logout(Request $request){
