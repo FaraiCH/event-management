@@ -3,42 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\AttendeeResource;
-use App\Http\Traits\CanLoadRelations;
 use App\Models\Attendee;
 use App\Models\Event;
 use Illuminate\Http\Request;
 
 class AttendeeController extends Controller
 {
-    use CanLoadRelations;
-
-    private array $relations = ['user'];
     /**
      * Display a listing of the resource.
      */
     public function index(Event $event)
     {
-        $query = $this->loadRelations(
-            $event->attendees()->latest()
-        );
+        $attendees = $event->attendees()->latest();
         return AttendeeResource::collection(
-            $query->paginate()
+            $attendees->paginate()
         );
     }
 
-    protected function shouldIncludeRelation(string $relation) : bool
-    {
-        $include = \request()->query('include');
-
-        if(!$include)
-        {
-            return false;
-        }
-
-        $relations = array_map('trim',explode(',',$include));
-
-        return in_array($relation, $relations);
-    }
     /**
      * Show the form for creating a new resource.
      */
@@ -63,9 +44,7 @@ class AttendeeController extends Controller
      */
     public function show(Event $event, Attendee $attendee)
     {
-        return new AttendeeResource(
-            $this->loadRelations($attendee)
-        );
+        return new AttendeeResource($attendee);
     }
 
     /**
